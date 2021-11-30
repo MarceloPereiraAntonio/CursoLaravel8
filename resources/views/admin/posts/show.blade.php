@@ -5,8 +5,9 @@
     <li><strong>Conteúdo: </strong>{{ $post->content }}</li>
 </ul>
 
-<form action="{{ route('posts.destroy') }}" method="post">
-
+<form action="{{ route('posts.destroy', $post->id)  }}" method="post">
+    @csrf
+    @method('DELETE')
     <button type="submit">Deletar post: {{ $post->title }}</button>
 </form>
 
