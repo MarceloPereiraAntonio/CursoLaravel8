@@ -25,7 +25,8 @@ class StoreUpdateRequest extends FormRequest
     {
         return [
             'title'=>'required|min:3|max:160',
-            'content'=>'required|min:2|max:1000',
+            'image'=>'image|required',
+            'content'=>'nullable|min:2|max:1000',
         ];
     }
     

@@ -10,7 +10,7 @@ class PostController extends Controller
 {
     public function index()
     {
-        $posts = Post::get();
+        $posts = Post::paginate();
      
         return view ('admin.posts.index', compact('posts'));
     }
@@ -22,7 +22,15 @@ class PostController extends Controller
 
   public function store(StoreUpdateRequest $request)
   {
-   $post = Post::create($request->all());
+    $data = $request->all();
+
+    if($request->image->isValid())
+      {
+        $image = $request->image->store('posts', 'public');
+        $data['image'] = $image;
+      }
+
+   $post = Post::create($data);
    return redirect()
             ->route('posts.index')
             ->with('message', 'Post criado com sucesso');
@@ -70,6 +78,14 @@ class PostController extends Controller
     return redirect()
             ->route('posts.index')
             ->with('message', 'Post atualizado com sucesso');
+  }
+
+  public function search(Request $request)
+  {
+    $filters = $request->except('_token');
+    $posts = Post::where('title', 'LIKE', "%$request->search%")
+                    ->paginate(1);
+      return view('admin.posts.index', compact('posts', 'filters'));
   }
 
 }
