@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUpdateRequest;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
@@ -26,7 +28,9 @@ class PostController extends Controller
 
     if($request->image->isValid())
       {
-        $image = $request->image->store('posts', 'public');
+        $nameFile= Str::of($request->title)->slug('-'). '.' .$request->image->getClientOriginalExtension();
+        $image = $request->image->storeAs('public/posts', $nameFile);
+        $image = str_replace('public/','', $nameFile);
         $data['image'] = $image;
       }
 
@@ -49,8 +53,10 @@ class PostController extends Controller
   }
   public function destroy($id)
   {
-    if(!$post = Post::find($id))
+     if(!$post = Post::find($id))
         return redirect()->route('posts.index');
+        if(Storage::exists('public/posts/'.$post->image))
+           Storage::delete('public/posts/'.$post->image);
         $post->delete();
         return redirect()
             ->route('posts.index')
@@ -69,12 +75,24 @@ class PostController extends Controller
   }
   public function update(StoreUpdateRequest $request, $id)
   {
-      
+    
     if(!$post = Post::find($id)){
         return redirect()->back();
     }
+    $data = $request->all();  
+      
+    if($request->image && $request->image->isValid())
+      {
+        if(Storage::exists('public/posts/'.$post->image))
+          Storage::delete('public/posts/'.$post->image);
+
+          $nameFile= Str::of($request->title)->slug('-'). '.' .$request->image->getClientOriginalExtension();
+          $image = $request->image->storeAs('public/posts', $nameFile);
+          $image = str_replace('public/','', $nameFile);
+          $data['image'] = $image;
+      }
     
-    $post->update($request->all());
+    $post->update($data);
     return redirect()
             ->route('posts.index')
             ->with('message', 'Post atualizado com sucesso');

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreUpdateRequest extends FormRequest
 {
@@ -23,17 +24,40 @@ class StoreUpdateRequest extends FormRequest
      */
     public function rules()
     {
-        return [
-            'title'=>'required|min:3|max:160',
-            'image'=>'image|required',
-            'content'=>'nullable|min:2|max:1000',
+        $id =$this->segment(2);
+        $rules = [
+            'title'=>[
+                'required',
+                'min:3',
+                'max:160',
+                Rule::unique('posts')->ignore($id)
+            ],
+            
+            'image'=>[
+                'image',
+                'required',
+            ],
+            
+
+            'content'=>[
+                'nullable',
+                'min:2',
+                'max:1000',
+            ],
         ];
+        if($this->method() == 'PUT')
+        {
+            $rules['image'] = ['nullable', 'image'];
+        }
+
+        return $rules;
     }
     
     public function messages()
     {
         return [
             'title.required'=>'O título deve conter no minimo 3 caracteres',
+            'title.unique'=> 'Esse titulo ja existe!',
             'content.required'=>'Informe no minimo 2 caracteres para o seu post',
         ];
     }
